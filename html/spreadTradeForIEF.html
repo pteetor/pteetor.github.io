@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>A Spread Trade for IEF</title>
+  <meta content="Paul Teetor" name="author">
+  <link rel="stylesheet" type="text/css" href="/css/global.css">
+</head>
+<body>
+<h1>A Spread Trade for IEF</h1>
+<div style="text-align: center;">DRAFT<br>
+</div>
+<i>
+<center>Paul Teetor</center>
+</i><br>
+<h2>Summary</h2>
+The <span style="font-style: italic;">iShares
+Barclays 7-10
+Year Treasury Bond Fund</span> (NYSE: IEF), is an exchange-traded fund
+which holds primarily intermediate-term US
+Treasury Notes. &nbsp;As the name suggests, the maturities of the
+holdings range from 7 to 10 years.<br>
+<br>
+I wanted to determine if IEF could be hedged or replicated using a
+combination of Treasury futures. &nbsp;If so, it might be possible
+to trade the spread between IEF and futures. &nbsp;I initially
+modeled
+the hedge/spread using Eurodollar, 2-year, 5-year, and
+10-years futures.<br>
+<br>
+<span style="font-weight: bold;">The final model, however, required
+only
+the 10-year futures. &nbsp;Furthermore, the model residuals are
+demonstrably
+mean-reverting, which naturally leads to relative value trades.</span>
+&nbsp;This is very encouraging because it
+suggests a simple spread -- IEF <span style="font-style: italic;">versus</span>
+10-year Treasury Note futures -- could be profitably traded.<br>
+<h2>Model Development</h2>
+<h3>Full Model</h3>
+The initial, full model was a time-series regression on the futures
+prices using daily closing prices.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">IEF</span><sub>i</sub>
+= &beta;<sub>0</sub>
++ &beta;<sub>ED</sub>&times;<span style="font-style: italic;">ED</span><sub>i</sub>
++ &beta;<sub>TU</sub>&times;<span style="font-style: italic;">TU</span><sub>i</sub>
++ &beta;<sub>FV</sub>&times;<span style="font-style: italic;">FV</span><sub>i</sub>
++ &beta;<sub>TY</sub>&times;<span style="font-style: italic;">TY</span><sub>i</sub>
++ &epsilon;<sub>i</sub><br>
+<br>
+&epsilon;<sub>i</sub>
+~ ARIMA(<span style="font-style: italic;">p</span>,
+1, <span style="font-style: italic;">q</span>)<br>
+</div>
+<br>
+where<br>
+<ul>
+  <li><span style="font-style: italic;">ED</span>
+is Eurodollar futures</li>
+  <li><span style="font-style: italic;">TU</span>
+is the 2-year Treasury note futures</li>
+  <li><span style="font-style: italic;">FV</span>
+is the 5-year Treasury note futures, and</li>
+  <li><span style="font-style: italic;">TY</span>
+is the 10-year Treasury note futures.</li>
+</ul>
+The initial fit selected <span style="font-style: italic;">p</span>
+= 3 and <span style="font-style: italic;">q</span>
+= 4, giving an ARIMA(3,1,4) model for the residuals.<br>
+<br>
+I assumed that the <span style="font-style: italic;">FV </span>and
+<span style="font-style: italic;">TY</span>
+futures would be necessary for modeling <span
+ style="font-style: italic;">IEF</span>
+since the futures would, essentially, create a bar-bell portfolio which
+matched the average maturity of the bond fund. &nbsp;I included <span
+ style="font-style: italic;">ED</span>
+in case the ETF, which pays monthly dividends, was sensitive to
+short-term rate movements. &nbsp;I included&nbsp;<span
+ style="font-style: italic;">TU</span> simply for completeness, without
+expectation it would be a significant predictor.
+<h3>Reduced Model</h3>
+The <span style="font-style: italic;">TU</span>
+proved to be insignificant, which was not surprising. &nbsp;The <span
+ style="font-style: italic;">ED</span>
+term was also insignificant, which was reasonable but a little
+surprising.<br>
+<br>
+I was quite surprised, however, that the <span
+ style="font-style: italic;">FV</span>
+term was also insignificant. &nbsp;Evidently, the 10-year futures, <span
+ style="font-style: italic;">TY</span>,
+is sufficient to mimic the fund behaviour without the 5-year bar-bell
+component. &nbsp;The final, reduced model was
+very simple:<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">IEF</span><sub>i</sub>
+= &beta;<sub>0</sub>
++ &beta;<sub>TY</sub>&times;<span style="font-style: italic;">TY</span><sub>i</sub>
++ &epsilon;<sub>i</sub><br>
+<br>
+&epsilon;<sub>i</sub>
+~ ARIMA(<span style="font-style: italic;">p</span>,
+1, <span style="font-style: italic;">q</span>)<br>
+</div>
+<br>
+A re-fit of the ARIMA model gave <span style="font-style: italic;">p</span>
+= 1 and <span style="font-style: italic;">q</span>
+= 2, for a final ARIMA(1,1,2) model of &epsilon;. &nbsp;The
+indicated
+hedge ratio was approximately 1,308 shares of IEF for each TY contract.
+<h3>Model Assessment</h3>
+The model residuals are mostly&nbsp;clean and show no bias.<br>
+<br>
+<div style="margin-left: 40px;"><img
+ style="width: 400px; height: 400px;"
+ alt="Residuals for reduced IEF model"
+ src="http://quanttrader.info/public/images/ief.model.resid.png"><br>
+</div>
+<br>
+An obvious problem is the explosion in variance in the recent residuals
+(extreme right-hand side). &nbsp;I assume this is caused by the
+unprecedented&nbsp;conditions during the financial markets'
+melt-down
+of 2008. &nbsp;From a modeling standpoint, it suggests that the
+market
+has entered a new regime, and the model may require a local re-fit.<br>
+<br>
+The variance explosion is echoed in the Normal quantile-quantile plot
+of the residuals.<br>
+<br>
+<div style="margin-left: 40px;"><img
+ style="width: 400px; height: 400px;"
+ alt="Normal Q-Q plot for IEF model residuals"
+ src="http://quanttrader.info/public/images/ief.model.resid.qq.png"><br>
+</div>
+<br>
+Clearly, there are out-sized residuals, as indicated by the fat tails.
+&nbsp;This casts some suspicion on the model, but might be
+explained by
+the excessive market volatility of 2008.<br>
+<br>
+Testing the residuals for mean reversion gives a <span
+ style="font-style: italic;">p</span>-value
+of essentially zero, using
+the Augmented Dickey-Fuller test, so we can be confident they are
+mean-reverting. &nbsp;This&nbsp;is no surprise after seeing the
+plot of
+residuals, above.
+<h2>Conclusions</h2>
+The main result here is that the 10-year Treasury Note futures (<span
+ style="font-style: italic;">TY</span>)
+seem sufficient for hedging the
+IEF stock. &nbsp;This is a welcome result because the spread trade
+is
+quite simple and does not require a basket of futures contracts.<br>
+<br>
+A second result is that the model's residuals are historically
+mean reverting, creating the opportunity for mean-reversion trades:
+&nbsp;the residuals act as indicators of over- and under-valuation,
+letting us enter the spread at opportune times. &nbsp;This chart of
+recent residuals
+illustrates some typical opportunities.<br>
+<br>
+<div style="margin-left: 40px;"><a
+ href="http://quanttrader.info/public/images/ief.model.resid.recent.png"><img
+ style="border: 0px solid ; width: 400px; height: 400px;"
+ alt="Recent residuals from IEF model"
+ src="http://quanttrader.info/public/images/ief.model.resid.recent.png"></a><br>
+</div>
+<br>
+Notice that the mispricing strayed from zero, but reliably returned to
+the mean.
+&nbsp;The extremes of those deviations represented trading
+opportunities.
+<h2>Limitations</h2>
+This is only a preliminary study. &nbsp;A deeper study could
+address
+these issues, among others.<br>
+<ul>
+  <li>The study used closing
+prices, which are dissynchronized between
+the futures market (3:00 PM Eastern) and the stock market (4:00 PM
+Eastern). &nbsp;The unmatched closing times inevitably introduce
+unwelcome noise into the model.</li>
+  <li>The recent large
+variance in the residuals needs further
+research. &nbsp;Will a simple re-fit of the model to recent data
+eliminate the excess variance, including the fat tails in the Q-Q
+diagram?</li>
+  <li>This study used Perpetual
+Data&reg; from <a href="http://www.csidata.com">Commodity Systems Inc.</a>
+for futures
+prices. &nbsp;This is convenient for a quick study, but should
+probably
+be replaced by roll-forward data in order to improve the model's
+credibility. </li>
+</ul>
+<h2>Acknowledgments</h2>
+I am grateful to Art Margulis of <a href="http://www.cogcap.com">Cognitive
+Capital</a> for suggesting the
+idea of trading some ETFs as if they are fixed-income instruments.
+&nbsp;I am also grateful to Mohamed Amezziane of DePaul University
+for
+his constructive comments on fitting the model.<br>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title>Finding Seasonal Spreads</title>
+  <meta content="Paul Teetor" name="author">
+  <meta
+ content="Describes an application of ANOVA to identifying spreads with seasonal behaviour."
+ name="description">
+  <link rel="stylesheet" type="text/css" href="/css/global.css">
+</head>
+<body>
+<h1 style="text-align: center;">Finding
+Seasonal Spreads</h1>
+<div style="text-align: center;">Paul
+Teetor
+<br>
+</div>
+<br>
+Many spreads show seasonality -- that is, regular patterns from
+year-to-year -- and can be a valuable source of profits and
+diversification. &nbsp;Seasonal spreads, however,
+seem
+to get little attention from the quantitative community.&nbsp;
+I&rsquo;d like to remedy that by showing one way to identify
+seasonal
+spreads using legitimate statistical techniques.&nbsp; I'll start
+with
+an example of a seasonal spread: crude oil <span
+ style="font-style: italic;">versus</span>
+gasoline.
+<h2>Example: Crude oil versus
+gasoline</h2>
+Here is a chart of the spread between crude oil futures (CL) and
+gasoline futures (RB) from 1997 to the present, covering about 12 years
+of history.<br>
+<br>
+<div style="margin-left: 40px;"><img
+ style="width: 576px; height: 504px;" alt="Chart of CL/RB spread"
+ src="images/cl.rb.spread.png"><br>
+</div>
+<br>
+If you look closely, it appears that the spread often falls during
+Winter, then rises from Spring into Summer.&nbsp; But how can we be
+sure?&nbsp; Perhaps we are just imagining the pattern, based on a
+few
+examples.&nbsp; And what are the actual months when it falls and
+rises?<br>
+<br>
+Here is how we can test for a seasonal pattern.
+<ol>
+  <li>Compute the daily change in
+the spread, <span style="font-style: italic;">s</span><sub>t</sub>,
+giving us one &Delta;<span style="font-style: italic;">s</span><sub>t</sub>
+value for every day of the spread&rsquo;s history.</li>
+  <li>For each day, group the
+day&rsquo;s change according to the month
+of that day.</li>
+  <li>Compute the average change
+for each monthly group.&nbsp; </li>
+</ol>
+That will give a table such as this, with one mean change (&micro;)
+for
+every month, taken over all the years of spread history.<br>
+<br>
+<table border="1" cellpadding="3" cellspacing="0">
+  <tbody>
+    <tr>
+      <td>&nbsp; </td>
+      <td>Jan </td>
+      <td>Feb </td>
+      <td>Mar </td>
+      <td>Apr </td>
+      <td>May </td>
+      <td>Jun </td>
+      <td>Jul </td>
+      <td>Aug </td>
+      <td>Sep </td>
+      <td>Oct </td>
+      <td>Nov </td>
+      <td>Dec </td>
+    </tr>
+    <tr>
+      <td>Mean change </td>
+      <td>-31.97 </td>
+      <td>52.15 </td>
+      <td>-16.74 </td>
+      <td>12.98 </td>
+      <td>94.73 </td>
+      <td>78.16 </td>
+      <td>33.08 </td>
+      <td>-12.39 </td>
+      <td>-18.88 </td>
+      <td>22.77 </td>
+      <td>-121.50 </td>
+      <td>-90.37 </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+(These averages are in dollars per day.) <br>
+<br>
+The monthly averages suggest trades:&nbsp; January is a down month,
+on
+average,
+so sell the spread during January.&nbsp; Likewise, February is an
+up
+month, on average, so buy the spread during February.<br>
+<br>
+Those trades would be very na&iuml;ve, however.&nbsp; A
+statistician
+would ask an important question before risking real money:&nbsp;
+What
+is probability that the true mean is actually positive or
+negative?&nbsp; The averages for April and August are pretty small
+(12.98 and -12.9), for example.&nbsp; Maybe our sample is too
+small,
+and these averages are not representative.&nbsp; How realistic are
+these numbers?<br>
+<br>
+The solution is to form confidence intervals for each monthly
+mean.&nbsp; This barchart shows the mean change taken from the
+table
+above, then superimposes the confidence intervals over each bar, giving
+us a composite view of the monthly averages.<br>
+<br>
+<div style="margin-left: 40px;"><img
+ style="width: 576px; height: 432px;"
+ alt="Barchart of mean daily spread change by month"
+ src="images/cl.rb.barchart.png"><br>
+</div>
+<br>
+Consider the bar for January.&nbsp; Yes, the mean change is
+negative,
+but the confidence interval crosses over into positive
+territory.&nbsp;
+Statistically speaking, <span style="font-style: italic;">we cannot be
+confident that the true mean is
+negative</span>.&nbsp; It could
+be zero or even positive, so selling
+the
+spread during January could be unwise.&nbsp; In fact, the
+confidence
+interval includes zero for most months, and we cannot be confident
+there is any seasonal trend in those months, either positive or
+negative.<br>
+<br>
+The confidence interval for May, however, is completely
+positive.&nbsp;
+We can be confident that the average historical daily change in May is
+positive.&nbsp; In fact, May and June are clearly
+&ldquo;up&rdquo;
+months, and November and December are clearly
+&ldquo;down&rdquo;
+months.&nbsp; Now we have our seasonal trade for the CL/RB spread:
+<ul>
+  <li>Buy the spread on May
+1.&nbsp; Close the position on Jul 1. </li>
+  <li>Short the spread on Nov
+1.&nbsp; Close the position on Jan 1. </li>
+</ul>
+<h2>Finding Seasonal Spreads
+Automatically: ANOVA</h2>
+This analysis would be quite tedious if we performed it manually for
+every spread we know.&nbsp; Fortunately, we can use ANOVA to
+automatically identify seasonality in spreads.<br>
+<br>
+ANOVA stands for <span style="font-style: italic;">analysis of variance</span>.&nbsp;
+ANOVA compares groups of
+observations, such as our month-wise groups of spread
+changes.&nbsp; It
+reports the probability that one or more groups have significantly
+different means, compared with the other groups.<br>
+<br>
+The ANOVA report includes a <span style="font-style: italic;">probability
+value</span>, or simply <span style="font-style: italic;">p</span>-value,
+which
+is the probability that all the means are identical.&nbsp; So a
+small
+<span style="font-style: italic;">p</span>-value
+means one or more
+groups are probably not the same.&nbsp; In
+the CL/RB example, above, my computer reports a <span
+ style="font-style: italic;">p</span>-value
+of less than
+0.0001, so the probability that all months have the same average change
+is less than 0.01%.<br>
+<br>
+My computer runs a weekly batch job which computes the ANOVA p-value
+for every spread in my database.&nbsp; If the <span
+ style="font-style: italic;">p</span>-value
+is 0.05 or less,
+I know there is a 95% probability that the spread changes are
+significantly different from month-to-month; in other words, the spread
+exhibits a seasonal pattern.&nbsp; In those cases, the batch job
+saves
+the <span style="font-style: italic;">p</span>-value
+in the
+database.&nbsp; Later, I run a report to select the
+spreads with the best (i.e., smallest) <span
+ style="font-style: italic;">p</span>-values.&nbsp;
+Those are my
+candidates for seasonal trades.<br>
+<br>
+The computer tests every combination of stocks and futures, so it
+occasionally reports a bizarre seasonal spread.&nbsp; It recently
+discovered that the spread between British Pound futures (BP) and Live
+Cattle (LC) shows seasonality at a confidence level of 96% or
+better.&nbsp; Would I trade the BP/LC spread?&nbsp; Of course
+not,
+because I cannot discern the economic logic of the trade.
+<h2>Limitations</h2>
+This analysis is not an automated trading system and has important
+limitations.
+<ul>
+  <li>The analysis does not make a
+prediction.&nbsp; It only reports
+the past pattern.&nbsp; When you trade that pattern, you are
+assuming
+this year is like other years. </li>
+  <li>The basic ANOVA analysis
+only reports that some months are
+different, not which months are different.&nbsp; The trader must
+look
+at monthly pattern to choose the right time for the trade. </li>
+  <li>The trade decision must also
+incorporate the current market
+conditions.&nbsp; For example, if the history recommends buying but
+the
+spread is already quite high, the trade could be unwise. </li>
+  <li>This analysis looks at
+monthly patterns.&nbsp; The seasonal
+patterns at other boundaries might be more distinct and, hence, better
+trades. </li>
+</ul>
+<h2>Next Steps</h2>
+We can augment this analysis by computing the spread&rsquo;s Z
+score,
+then selecting trades which show harmony between their historical
+pattern and current status.&nbsp; We can also improve the analysis
+by
+incorporating a seasonal version of the <a
+ href="http://epchan.blogspot.com/2007/01/what-is-your-stop-loss-strategy.html">Ornstein-Uhlenbeck
+formula</a>,
+letting us predict the time-to-profit.&nbsp; I hope to cover these
+subjects in the future.
+<h2>Additional Details For the
+Curious</h2>
+The data for the CL/RB spread, above, was purchased from <a
+ href="http://www.csidata.com/">Commodity
+Systems Inc.</a> (CSI), using their
+Perpetual Contact data.&nbsp; This
+example was as of Feb 5, 2009.
+<p>When I say &ldquo;long the
+CL/RB spread&rdquo;, I mean buy CL and
+sell RB.&nbsp; Likewise, &ldquo;short the spread&rdquo;
+means sell CL
+and buy RB. </p>
+<p>I compute the hedge ratios for
+my spreads using ordinary least
+squares, as suggested in <a
+ href="http://epchan.blogspot.com/2008/11/my-book-on-quantitative-trading-is.html">Ernie
+Chan's book</a>.&nbsp; The ratio for
+the
+CL/RB spread, above, was 1.1376 CL contracts for each RB contract. </p>
+<p>Notice that I compute the
+spread <span style="font-style: italic;">change</span>,
+not the spread
+<span style="font-style: italic;">return</span>.&nbsp;
+Quants usually
+study price returns, but that won&rsquo;t
+work with spreads because the spread can be zero, giving an undefined
+return.&nbsp; The daily change follows a similar bell-shaped
+distribution, so it&rsquo;s a reasonable object for study. </p>
+<p>I monitor about 115 stocks and
+futures, so I have about 6,670
+spreads to be tested weekly.&nbsp; A typical recent run found that
+over
+270 spreads that exhibit some seasonality, or about 4% of those
+tested.&nbsp; The ANOVA batch job requires about 2-1/2 hours to
+complete on my computer.&nbsp; The software is written in a
+combination
+of <a href="http://www.perl.org/">Perl</a>
+and <a href="http://www.r-project.org">R</a>,
+the free statistical software
+system, running under
+Linux. </p>
+<h2>References</h2>
+The original and still-the-best book on seasonality is <span
+ style="font-style: italic;">Seasonality:
+Systems, Strategies, and Signals</span>,
+by Jake Bernstein.&nbsp; Some
+of the
+ideas in this analysis were inspired by Bernstein&rsquo;s book.
+<p>Most good textbooks on
+statistics discuss ANOVA.&nbsp; There is an
+<a href="http://en.wikipedia.org/wiki/Analysis_of_variance">article
+on
+Wikipedia</a>, but it is not a
+tutorial. </p>
+<p>Any decent software for
+statistics includes the ANOVA
+analysis.&nbsp; That includes <a href="http://www.r-project.org">R</a>
+and <a href="http://www.gnu.org/software/octave/">Octave</a>,
+which
+are both free. </p>
+</body>
+</html>

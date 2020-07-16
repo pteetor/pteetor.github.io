@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Finding Seasonal Spreads</title>
+</head>
+<body>
+A <span style="font-style: italic;">seasonal spread</span> is a spread
+which follows a regular pattern from year to year, such as generally
+falling in the Spring or generally rising in October. &nbsp;To find
+seasonal spreads, I've been using <span style="font-style: italic;">ANOVA</span>,
+which stands for&nbsp;<span style="font-style: italic;">analysis
+of variance</span>. &nbsp;ANOVA is a well-established statistical
+technique
+which, given several groups of data, will determine if the groups have
+different averages. &nbsp;Importantly, it determines if the
+differences are <span style="font-style: italic;">statistically
+significantly</span>.<br>
+<br>
+I start with several years of spread data, compute the spread's daily
+changes, then group the daily changes by their calendar month, giving
+me
+12 groups. &nbsp;The ANOVA analysis tells me if the groups (months)
+have significantly different averages. &nbsp;If so, I know the spread
+is seasonal since it is consistently up in certain months and
+consistently down in others.<br>
+<br>
+The beauty is that I can automate the process, scanning my entire
+database for seasonal spreads. &nbsp;A recent scan identified the
+spread between crude oil (CL) and gasoline (RB), for example. &nbsp;The
+initial ANOVA analysis indicated the CL/RB spread is very likely to be
+seasonal. &nbsp;This bar chart of each month's average daily change
+demonstrates the seasonality. &nbsp;(Click on the graph to enlarge it.)<br>
+<br>
+<div style="margin-left: 40px;"><a
+ href="http://quanttrader.info/public/images/cl.rb.barchart.png"><img
+ title="Barchart of average daily spread change.  Click to enlarge."
+ style="border: 0px solid ; width: 380px; height: 285px;"
+ alt="Barchart of average daily change for CL/RB spread"
+ src="http://quanttrader.info/public/images/cl.rb.barchart.png"></a><br>
+</div>
+<br>
+The lines show the confidence
+interval for each month's average.&nbsp;
+Notice how May and June are definitely "up" months because their
+confidence interval is entirely positive (above the axis).
+&nbsp;Likewise, November and December are definitely "down" months.
+&nbsp;For all other months, we cannot be certain because the confidence
+interval crosses zero, so the true average change could be either
+negative or positive. &nbsp;The conclusion: &nbsp;Be long the spread
+during May and June; be short during November and December.<br>
+<br>
+For more details, please see my <a
+ href="http://quanttrader.info/public/findingSeasonalSpreads.html">on-line
+paper</a> regarding ANOVA and seasonal spreads.<br>
+<br>
+- Paul Teetor
+</body>
+</html>

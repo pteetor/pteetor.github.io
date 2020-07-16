@@ -1,0 +1,407 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Using R to Test Pairs of Securities for Cointegration</title>
+  <meta content="Paul Teetor" name="author">
+  <link rel="stylesheet" type="text/css"
+ href="http://quanttrader.info/css/global.css">
+</head>
+<body>
+<h1 style="text-align: center;">Using
+R to Test Pairs of Securities for
+Cointegration<br>
+</h1>
+<div style="text-align: center;"><big><a
+ href="http://quanttrader.info/public/">Paul Teetor</a><br>
+August 2009</big><br>
+</div>
+<br>
+Ernie Chan's <a href="http://www.amazon.com/dp/0470284889">book</a>,
+<span style="font-style: italic;">Quantitative
+Trading</span>,
+explains why <span style="font-style: italic;">cointegrated</span>
+pairs of securities are useful for constructing mean-reverting trades.
+&nbsp;It also explains how to test pairs of securities for
+cointegration. &nbsp;Ernie uses&nbsp;Matlab, but some readers
+may want
+to use <a href="http://www.r-project.org">R</a>,
+the software for statistical computing and graphics. &nbsp;This
+note explains how to perform the cointegration test using R.<br>
+<br>
+Let's assume you have the history of daily prices for two
+stocks,&nbsp;<span style="font-style: italic;">GLD</span>
+and&nbsp;<span style="font-style: italic;">GDX</span>.
+You want to know if the prices are cointegrated. Let's also assume the
+data are captured in two files, <code>GLD.csv</code>
+and <code>GDX.csv</code>,
+which are
+in&nbsp;comma-separated value (CSV) format with seven columns:
+date, open, high, low, close, volume, and adjusted close.<br>
+<br>
+Two notes before we begin.<br>
+<ul>
+  <li>This is not a tutorial on R.
+&nbsp;(Sorry.)&nbsp; You can learn about R
+from its official <a href="http://www.r-project.org">web
+site</a>, from&nbsp;<a
+ href="http://cran.r-project.org/doc/manuals/R-intro.pdf"><span
+ style="font-style: italic;">An Introduction to R</span></a>,&nbsp;from
+one of the <a href="http://www.statmethods.net/about/books.html">tutorials</a>,
+or from one of the available <a
+ href="http://www.r-project.org/doc/bib/R-books.html">books</a>.</li>
+  <li>This is also not a tutorial
+on cointegration. &nbsp;For that I
+recommend Ernie Chan's <a href="http://www.amazon.com/dp/0470284889">book</a>;
+or, for the more mathematically inclined, the <a
+ href="http://www.amazon.com/gp/product/0387759662">book</a>
+by
+Bernhard Pfaff, <span style="font-style: italic;">Analysis of
+Integrated and Cointegrated Time Series with R</span>.
+&nbsp;Both books
+are excellent.</li>
+</ul>
+<h2>Data Representation</h2>
+You could perform this work using vectors or data frames to
+represent your time series data, but that would be tedious. I use <span
+ style="font-style: italic;"><a
+ href="http://r-forge.r-project.org/projects/zoo/">zoo</a>
+</span>objects
+for representation of time series, and I strongly recommend either
+the <span style="font-style: italic;">zoo</span>
+package or&nbsp;the <span style="font-style: italic;">xts</span>
+package. &nbsp;<a href="http://r-forge.r-project.org/projects/xts/"><span
+ style="font-style: italic;">xts</span>
+</a>is a super-set of <span style="font-style: italic;">zoo</span>
+with an extremely fast implementation and many other features. Here,
+I'll assume you are using <span style="font-style: italic;">zoo</span>.<br>
+<br>
+Once your data are captured in a <span style="font-style: italic;">zoo</span>
+object, say <span style="font-style: italic;">t</span>,
+it behaves like a data frame. One <span style="font-style: italic;">zoo</span>
+object can contain several columns, where each column is a
+different time series and each row is a set of (simultaneous)
+observations of those
+series. &nbsp;The object provides an additional attribute, <code>index(t)</code>,
+which is the vector of dates, one date per observation. &nbsp;The
+first and last dates are available using <code>start(t)</code>
+and <code>end(t)</code>,
+respectively.<br>
+<h2>Loading the Data</h2>
+Loading the CSV files&nbsp;into a <span style="font-style: italic;">zoo</span>
+object requires a few simple steps.<br>
+<ol>
+  <li>Read the two files into two
+data
+frames.</li>
+  <li>Convert the dates from
+strings into Date objects.</li>
+  <li>Convert the two data frames
+into two zoo objects.</li>
+  <li>Take the intersection of the
+two zoo objects. &nbsp;That will create one zoo object with the
+observations common
+to both datasets.</li>
+</ol>
+Here is the R code.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">library(zoo)&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; # Load
+the zoo package<br>
+<br>
+#
+Read the CSV files
+into data frames<br>
+#<br>
+gld &lt;- read.csv("GLD.csv", stringsAsFactors=F)<br>
+gdx &lt;- read.csv("GDX.csv", stringsAsFactors=F)<br>
+<br>
+# The first column contains dates. &nbsp;The as.Date<br>
+# function can convert strings into Date objects.<br>
+#<br>
+gld_dates &lt;- as.Date(gld[,1])<br>
+gdx_dates &lt;- as.Date(gdx[,1])<br>
+<br>
+# The seventh column contains the adjusted close.<br>
+# We use the zoo function to create zoo objects from that data.<br>
+# The function&nbsp;takes two arguments:&nbsp;a vector of data and<br>
+# a vector of dates.<br>
+#<br>
+gld &lt;- zoo(gld[,7], gld_dates)<br>
+gdx &lt;- zoo(gdx[,7], gdx_dates)<br>
+<br>
+# The merge function can combine two zoo objects,<br>
+# computing either their intersection (all=FALSE)<br>
+# or union (all=TRUE).<br>
+#<br>
+t.zoo &lt;- merge(gld, gdx, all=FALSE)<br>
+<br>
+# At this point, t.zoo is a zoo object with two columns: gld and gdx.<br>
+# Most statistical functions expect a data frame for input,<br>
+# so we create a data frame here.<br>
+#<br>
+t &lt;- as.data.frame(t.zoo)<br>
+<br>
+# Tell the user what dates are spanned by the data.<br>
+#<br>
+cat("Date range is", format(start(t.zoo)), "to", format(end(t.zoo)),
+"\n")<br>
+</span></div>
+<br>
+The <span style="font-family: monospace;">as.Date</span>
+function assumes your
+date strings are formatted like <span style="font-style: italic;">yyyy-mm-dd</span>,
+which is the ISO standard format.
+If your strings use the common US format of <span
+ style="font-style: italic;">mm/dd/yy</span>,
+include a <span style="font-family: monospace;">format</span>
+specification.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">gld_dates
+&lt;- as.Date(gld[,1], format="%m/%d/%y")</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">gdx_dates
+&lt;- as.Date(gdx[,1],
+format="%m/%d/%y")</span><br>
+</div>
+<br>
+<h2>Constructing the Spread</h2>
+In Ernie's book, he first tests for cointegration, then he constructs
+the spread. In R, we do it the other way around: First we construct the
+spread, then we test the spread for a
+<span style="font-style: italic;">unit
+root</span>. &nbsp;It the spread
+has a root inside the unit circle, the underlying securities are
+cointegrated.
+&nbsp;(See
+Bernhard Pfaff's book for a discusion of unit roots and their
+significance.)<br>
+<br>
+The spread is defined this way.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">S</span>
+=&nbsp;<span style="font-style: italic;">y</span>
+- (&beta; &times;&nbsp;<span style="font-style: italic;">x</span><sub>)</sub></div>
+<br>
+where &beta; is the hedge ratio, calculated
+using&nbsp;ordinary least squares
+(OLS). &nbsp;Rearranging terms, we want to find the value of
+&beta; which
+best fits this equation.<br>
+<br>
+<div style="margin-left: 40px;">&nbsp;<span style="font-style: italic;">y</span>
+= (-&beta;) &times;&nbsp;<span style="font-style: italic;">x</span></div>
+<br>
+This is a simple linear equation with no <span
+ style="font-style: italic;">y</span>
+intercept. &nbsp;In R,
+the <code>lm</code>
+function
+can fit a linear model such as this.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">#
+The lm function
+builds linear regression models using OLS.<br>
+# We build the linear model, m, forcing a zero intercept,<br>
+# then we extract the&nbsp;model's&nbsp;first
+regression&nbsp;coefficient.<br>
+#<br>
+m &lt;- lm(gld ~ gdx + 0, data=t)<br>
+beta &lt;- coef(m)[1]<br>
+<br>
+cat("Assumed hedge ratio is", beta, "\n")<br>
+<br>
+# Now compute the spread<br>
+#<br>
+sprd &lt;- t$gld - beta*t$gdx</span></div>
+<br>
+The first argument to <code>lm</code> is a formula, which specifies
+the linear
+model. &nbsp;The formula <code>gld ~ gdx + 0</code> says the model is<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">GLD</span><sub>i</sub>
+= &beta;&times;<span style="font-style: italic;">GDX</span><sub>i</sub>
++ &epsilon;<sub>i</sub> </div>
+<br>
+(If we omit&nbsp;"+ 0" from the formula, R would fit a <span
+ style="font-style: italic;">y</span> intercept, too.)<br>
+<h2>Testing for Cointegration</h2>
+The Augmented Dickey-Fuller test is a basic statistical test for a unit
+root, and several R packages implement that test. &nbsp;Here, we
+will use the&nbsp;<code>adf.test</code>
+function which is implemented in the <code>tseries</code>
+package. &nbsp;The<span style="font-family: monospace;"> </span><code></code>function
+returns an object which
+contains the test results. In particular, it contains the <span
+ style="font-style: italic;">p-value</span>
+that we want.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">library(tseries)&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; # Load
+the tseries package<br>
+<br>
+# Setting alternative="stationary" chooses the appropriate test.<br>
+# Setting k=0 forces a basic (not augmented) test. &nbsp;See the<br>
+# documentation for its&nbsp;full meaning.<br>
+#<br>
+ht
+&lt;-
+adf.test(sprd, alternative="stationary", k=0)<br>
+cat("ADF p-value is", ht$p-value, "\n")</span></div>
+<br>
+Setting&nbsp;<code></code><span style="font-family: monospace;">alternative</span>=<span
+ style="font-family: monospace;">"stationary"</span>
+is important.<br>
+<ul>
+  <li>To a statistician, it
+specifies a null hypothesis that the spread is <span
+ style="font-style: italic;">non-stationary</span>
+or <span style="font-style: italic;">explosive</span>.</li>
+  <li>For everyone else, it means
+that if the&nbsp;<span style="font-style: italic;">p</span>-value
+is small, the spread is mean-reverting. By "small," I mean
+less than 0.10 or less than 0.05, depending how fussy you are.
+&nbsp;(Smaller is better.)</li>
+</ul>
+We can interpret the ADF test results for the user.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">#
+The ht object
+contains the p-value from the ADF test.<br>
+# The p-value is the probability that the spread is NOT<br>
+# mean-reverting. &nbsp;Hence, a small p-value means it is very<br>
+# improbable that the spread is NOT mean-reverting<br>
+# (got that?).<br>
+#<br>
+if (ht$p.value &lt; 0.05) {<br>
+&nbsp;&nbsp;&nbsp; cat("The spread is likely
+mean-reverting.\n")<br>
+} else {<br>
+&nbsp;&nbsp;&nbsp; cat("The spread is not
+mean-reverting.\n")<br>
+}</span></div>
+<br>
+One word of caution: &nbsp;The <code>adf.test</code>
+function essentially detrends your data before testing for
+stationarity. &nbsp;If your data contains a strong trend, you might
+be very surprised to learn it is "mean reverting" when it is obvously
+moving upward or downward. &nbsp;If this is a problem for you, consider
+the &nbsp;<span style="font-style: italic;">fUnitRoots</span> package
+which contains the <code>adfTest</code> function (note the spelling!).
+&nbsp;That function lets you analyze either with or without the trend
+assumption.<span style="font-style: italic;"></span><br>
+<h2>Putting It All Together</h2>
+OK, I've talked a lot, but it's really not much code. Here it is with
+some fat removed.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;"></span><span
+ style="font-family: monospace;">library(zoo)<br>
+library(tseries)<br>
+<br>
+gld &lt;-
+read.csv("GLD.csv", stringsAsFactors=F)<br>
+gdx &lt;- read.csv("GDX.csv", stringsAsFactors=F)<br>
+<br>
+gld &lt;- zoo(gld[,7],&nbsp;</span><span style="font-family: monospace;">as.Date(gld[,1])</span><span
+ style="font-family: monospace;">)<br>
+gdx &lt;- zoo(gdx[,7],&nbsp;</span><span style="font-family: monospace;">as.Date(gdx[,1])</span><span
+ style="font-family: monospace;">)<br>
+<br>
+t.zoo &lt;- merge(gld, gdx, all=FALSE</span><span
+ style="font-family: monospace;">)<br>
+t &lt;- as.data.frame(t.zoo)<br>
+<br>
+cat("Date range is", format(start(t.zoo)), "to", format(end(t.zoo)),
+"\n")<br>
+<br>
+</span><span style="font-family: monospace;">m &lt;- lm(gld ~
+gdx
++ 0, data=t)<br>
+beta &lt;- coef(m)[1]<br>
+<br>
+cat("Assumed hedge ratio is", beta, "\n")<br>
+<br>
+sprd &lt;- t$gld - beta*t$gdx<br>
+</span><span style="font-family: monospace;">ht &lt;-
+adf.test(sprd, alternative="stationary", k=0)<br>
+<br>
+cat("ADF p-value is", ht$p.value, "\n")<br>
+<br>
+</span><span style="font-family: monospace;">if (ht$p.value
+&lt; 0.05) {<br>
+&nbsp;&nbsp;&nbsp; cat("The spread is likely
+mean-reverting\n")<br>
+} else {<br>
+&nbsp;&nbsp;&nbsp; cat("The spread is not
+mean-reverting.\n")<br>
+}</span></div>
+<br>
+When I ran this code on recent data, I got this output.<br>
+<br>
+<div style="margin-left: 40px;"><code>Date
+range is 2006-05-23 to 2009-08-10<br>
+Assumed hedge ratio is 1.928096<br>
+ADF p-value is 0.2609909<br>
+The spread is not mean-reverting.</code></div>
+<h2>Postscripts</h2>
+I used many R
+functions, but did not try to explain all their nuances. &nbsp;If
+you have any questions (e.g., "Why did you set <code>stringsAsFactors=FALSE</code>
+for <code>read.csv</code>?"),
+use the help facility to learn more about the function:<br>
+<br>
+<div style="margin-left: 40px;"><code>&gt;
+?read.csv</code></div>
+<br>
+These notes assume your data is captured inside CSV files. &nbsp;I
+did
+that just to mirror the example in Ernie Chan's book. &nbsp;R
+can read its data from many
+places. &nbsp;To learn more about R's input/output in general, start
+with the <a href="http://cran.r-project.org/doc/manuals/R-data.html">R
+Data
+Import/Export</a> manual.
+&nbsp;To learn more about loading financial
+data in particular, visit the web site for the <a
+ href="http://www.quantmod.com/">quantmod</a>
+package, an excellent
+source of tools for anyone working with financial data.<br>
+<br>
+R's input/output is so flexible, in fact, that you can read data
+directly from web
+sites, such as the Yahoo! Finance web site. &nbsp;Just use a URL
+instead of a file name, like this.<br>
+<br>
+<div style="margin-left: 40px;"><code>gld
+&lt;-
+read.csv("http://ichart.finance.yahoo.com/table.csv?s=GLD&amp;ignore=.csv",
+stringsAsFactors=F)<br>
+gdx &lt;-
+read.csv("http://ichart.finance.yahoo.com/table.csv?s=GDX&amp;ignore=.csv",
+stringsAsFactors=F)</code><br>
+</div>
+<br>
+This eliminates the extra step of saving the data to an intermediate
+file.<br>
+<br>
+I used the <code>adf.test</code>
+function, above, to test for stationarity. &nbsp;The ADF test is
+implemented
+in several other packages, too, such as the <span
+ style="font-style: italic;">fUnitRoots</span> and
+<span style="font-style: italic;">urca</span> packages. &nbsp;Bernhard
+Pfaff's book contains an entire chapter on
+tests for unit roots, including tests beyond the original ADF test.<br>
+<br>
+Finally, high-powered statisticians will be offended by my statement
+that "the <span style="font-style: italic;">p</span>-value [of the ADF
+test] is the probability that the
+spread is <span style="text-decoration: underline;">not</span>
+mean-reverting." Just for the record, here is the strict
+interpretation: &nbsp;"The <span style="font-style: italic;">p</span>-value
+is the probability that we could
+have observed the spread data, given the assumption that the spread is
+not mean-reverting."<br>
+</body>
+</html>
